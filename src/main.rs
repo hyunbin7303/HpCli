@@ -1,84 +1,72 @@
 mod commands;
+mod credentials;
 
-
-use clap::{Arg, Args, Parser, Subcommand};
+use clap::{ Parser, };
 use commands::Commands;
+use credentials::Credentials;
 
-pub struct Credentials {
-    api_key: String,
-    secret: String,
-}
-impl Credentials {
-    pub fn new(api_key: String, secret: String) -> Self {
-        Credentials { api_key, secret }
-    }
-    pub fn to_string(&self) -> String {
-        format!("Credentials({})", &self.api_key)
-    }
-}
-
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, version)]
-#[command(about = "stringer - a simple CLI to transform and inspect strings", long_about = "stringer is a super fancy CLI (kidding)
+#[command(about = "Hp Cli - a simple CLI for multi purpose application.",
+long_about = "Built by Kevin Park but not sure how I am going to use it yet hehe.")]
+pub struct CliApp {
+    // #[clap(long, short = 'k')]
+    // key: String,
 
-One can use stringer to modify or inspect strings straight from the terminal")]
-struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
 
-
-
-
 fn main() {
+
     let creds = Credentials::new(String::from("SOME_API_KEY"), String::from("SOME_SECRET"));
     println!("{}", creds.to_string());
-    // let config = match config::Config::new() {
-    //     Ok(config) => config,
-    //     Err(err) => {
-    //         eprintln!("{}", err);
-    //         std::process::exit(1);
-    //     }
-    // };
-    let cli = Cli::parse();
+    let cli = CliApp::parse();
 
     match &cli.command {
         Some(Commands::Encrypting(name)) => {
-            match name.string {
-                Some(ref _name) => {
 
-                }
-                None => {
-                    // Testing
-                }
-            }
+            println!("Encryption Option. Choose algorithm.");
+            println!("1. SHA256");
+            println!("2. MD5");
+            // match name.algorithm {
+            //     Some(ref _name) => {
+
+            //     }
+            //     None => {
+            //         // Testing
+            //     }
+            // }
         }
         Some(Commands::Zipping(name)) => {
-            match name.string {
+            match name.file_path {
                 Some(ref _name) => {
 
                 }None => {}
             }
         }
-        // Some(Commands::Projects(name, test)) => {
-        //     match name.string {
-        //         Some(ref _name) => {
+        Some(Commands::StringSearch(check)) => {
+            match check.input_string {
+                Some(ref _str) => {
 
-        //         }None => {}
-        //     }
-        // }
+                }None => {}
+            }
+
+            match check.search {
+                Some(ref _search) => {
+
+                }None => {}
+            }
+        }
+
+        // Some(Commands::Projects(name)) =>
+        // {
+        //     start_path;
+        //     exclude;
+        // }) => match projects(&start_path, args.max_depth, &exclude, &logger) {
+        //     Ok(_) => {}
+        //     Err(e) => eprintln!("error in processing : {}", e),
+        // },
         None => {}
     }
-
-
-    // let match_result = command!()
-    //     .arg(
-    //         Arg::new("firstname")
-    //             .short('f')
-    //             .long("first-name")
-    //             .aliases(["fname", "firstname"]),
-    //     )
-    //     .arg(Arg::new("lastname").short('l').long("last-name"))
-    //     .arg(Arg::new("fluffy").long("fluffy"))
-    //     .get_matches();
 }
