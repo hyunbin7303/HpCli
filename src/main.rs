@@ -24,19 +24,41 @@ fn main() {
     let cli = CliApp::parse();
 
     match &cli.command {
-        Some(Commands::Encrypting(name)) => {
+        Some(Commands::Encrypting(encrypting)) => {
 
-            println!("Encryption Option. Choose algorithm.");
-            println!("1. SHA256");
-            println!("2. MD5");
-            // match name.algorithm {
-            //     Some(ref _name) => {
+            let result = match encrypting.input_type.as_deref() {
+                Some("string") => {
+                    println!("Given String")
 
-            //     }
-            //     None => {
-            //         // Testing
-            //     }
-            // }
+                }
+                Some("file") => {
+                    println!("Given file name")
+
+                }
+                None => {
+                    println!("Invalid type.");
+                }
+                _ => {
+
+                }
+            };
+
+
+            match encrypting.algorithm.as_deref() {
+                Some("sha256") => {
+                    println!("Sha256  chosen.")
+                }
+                Some("md5") => {
+                    println!("Md5 chosen.")
+                }
+
+                Some(ref _algo) => {
+                    println!("Algorithm you chose is : {}", _algo);
+                }
+                None => {
+                    println!("algorithm is not valid.")
+                }
+            }
         }
         Some(Commands::Zipping(name)) => {
             match name.file_path {

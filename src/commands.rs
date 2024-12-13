@@ -32,14 +32,18 @@ pub struct Project {
 }
 
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 pub struct Encrypting {
-    #[arg(long = "algorithm", short= 'a')]
+    // #[arg(required=false)]
+    // pub path: std::path::PathBuf,
+    #[arg(long = "type", short ='t', required=true)]
+    pub input_type: Option<String>,
+
+    #[arg(long = "algorithm", short = 'a', required=true)]
     pub algorithm: Option<String>,
 
-    #[arg(long = "file-path", short= 'f')]
+    #[arg(long = "file-path", short= 'f', required=false)]
     pub file_path: Option<String>,
-    pub path: std::path::PathBuf,
 }
 #[derive(Args)]
 pub struct Zipping {
