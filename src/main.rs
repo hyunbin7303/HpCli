@@ -1,9 +1,11 @@
 mod commands;
 mod credentials;
+mod hash_helper;
 
 use clap::{ Parser, };
 use commands::Commands;
 use credentials::Credentials;
+use sha2::{Digest, Sha256};
 
 #[derive(Parser, Debug)]
 #[command(author, version)]
@@ -15,50 +17,67 @@ pub struct CliApp {
 
     #[command(subcommand)]
     pub command: Option<Commands>,
+
+    #[arg(global=true)]
+    global_testing: Option<String>
 }
 
 fn main() {
 
     let creds = Credentials::new(String::from("SOME_API_KEY"), String::from("SOME_SECRET"));
     println!("{}", creds.to_string());
+
+
+
+
     let cli = CliApp::parse();
 
     match &cli.command {
         Some(Commands::Encrypting(encrypting)) => {
+            //Symmetric Encryption
+            // AES Encryption
+            //
 
             let result = match encrypting.input_type.as_deref() {
                 Some("string") => {
-                    println!("Given String")
+                    println!("Given String");
+                    // Should we do the match statement sgdsfddsagain in here?
+                    // encrypt_sha256("");
+                    let inputStr = match encrypting.input_string.as_deref() {
+                        Some(input) => input,
+                        None => {
+                            return
+                        }
+                    };
 
+
+                    if encrypting.algorithm.as_deref().unwrap() == "sha256".to_string() {
+                        println!("Sha256  chosen.");
+
+                        let result = hash_helper::encrypt_sha256(inputStr);
+                        println!("{}", &result);
+                    }
+                    else if encrypting.algorithm.as_deref().unwrap() == "md5".to_string() {
+                        println!("md5  chosen.")
+                    }
+                    else {
+                        println!("Invalid hash algorithm.")
+                    }
+
+                    true;
+                    return
                 }
                 Some("file") => {
-                    println!("Given file name")
-
+                    false
                 }
                 None => {
                     println!("Invalid type.");
+                    return
                 }
                 _ => {
-
+                    false
                 }
             };
-
-
-            match encrypting.algorithm.as_deref() {
-                Some("sha256") => {
-                    println!("Sha256  chosen.")
-                }
-                Some("md5") => {
-                    println!("Md5 chosen.")
-                }
-
-                Some(ref _algo) => {
-                    println!("Algorithm you chose is : {}", _algo);
-                }
-                None => {
-                    println!("algorithm is not valid.")
-                }
-            }
         }
         Some(Commands::Zipping(name)) => {
             match name.file_path {
@@ -92,3 +111,5 @@ fn main() {
         None => {}
     }
 }
+
+

@@ -42,6 +42,9 @@ pub struct Encrypting {
     #[arg(long = "algorithm", short = 'a', required=true)]
     pub algorithm: Option<String>,
 
+    #[arg(required=true)]
+    pub input_string: Option<String>,
+
     #[arg(long = "file-path", short= 'f', required=false)]
     pub file_path: Option<String>,
 }
