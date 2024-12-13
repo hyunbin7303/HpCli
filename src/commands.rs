@@ -50,13 +50,7 @@ pub struct Encrypting {
 }
 #[derive(Args)]
 pub struct Zipping {
-    // #[arg(long = "file-path", short= 'f')]
-    // pub path: std::path::PathBuf,
-
-
-    /// The file path
     pub file_path: Option<String>,
-
 
     #[arg(short = 'd', long = "digits")]
     pub only_digits: bool,

@@ -1,34 +1,35 @@
-use std::{fs::File, io::Read};
-
-// use crypto::aes;
+use std::{fs::File, io::{BufReader, Read}, path::PathBuf};
 use sha2::{Digest, Sha256};
+use anyhow::Result;
 
-
-
-pub fn encrypt_sha256(input: &str) -> String {
+pub fn encrypt_sha256(input: &str) -> Result<String> {
     let mut hasher = Sha256::new();
     hasher.update(input);
     let hash = format!("{:X}", hasher.finalize());
-    return hash;
+    return Ok(hash);
 }
 
+pub fn encrypt_md5(input: &str) -> Result<String> {
+    let digest = md5::compute(input);
+    let result = format!("{:X}", digest);
+    return Ok(result);
+}
 
-// Hash binary file?
-//https://stackoverflow.com/questions/69787906/how-to-hash-a-binary-file-in-rust
+fn digest_file_sha256(path: &PathBuf) -> Result<String> {
+    let input = File::open(path)?;
+    let mut reader = BufReader::new(input);
 
+    let digest = {
+        let mut hasher = Sha256::new();
+        let mut buffer = [0; 1024];
+        loop {
+            let count = reader.read(&mut buffer)?;
+            if count == 0 { break }
+            hasher.update(&buffer[..count]);
+        }
+        hasher.finalize()
+    };
+    let result = format!("{:X}", digest);
 
-// pub fn compute_sha256_hash_file(file: &str) -> Result<(), String> {
-//     let mut file = File::open(file)?;
-//     let mut hasher = Sha256::new();
-//     let mut buffer = [0; 4096];
-//     loop {
-//         let bytes_read = file.read(&mut buffer)?;
-//         if bytes_read ==0 {
-//             break;
-//         }
-//         hasher.update(&buffer[..bytes_read]);
-//     }
-//     let hash = format!("{:X}", hasher.finalize());
-
-//     Ok(hash)
-// }
+    Ok(result)
+}

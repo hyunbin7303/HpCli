@@ -1,6 +1,8 @@
 mod commands;
 mod credentials;
 mod hash_helper;
+mod cmd_handler;
+
 
 use clap::{ Parser, };
 use commands::Commands;
@@ -34,50 +36,7 @@ fn main() {
 
     match &cli.command {
         Some(Commands::Encrypting(encrypting)) => {
-            //Symmetric Encryption
-            // AES Encryption
-            //
-
-            let result = match encrypting.input_type.as_deref() {
-                Some("string") => {
-                    println!("Given String");
-                    // Should we do the match statement sgdsfddsagain in here?
-                    // encrypt_sha256("");
-                    let inputStr = match encrypting.input_string.as_deref() {
-                        Some(input) => input,
-                        None => {
-                            return
-                        }
-                    };
-
-
-                    if encrypting.algorithm.as_deref().unwrap() == "sha256".to_string() {
-                        println!("Sha256  chosen.");
-
-                        let result = hash_helper::encrypt_sha256(inputStr);
-                        println!("{}", &result);
-                    }
-                    else if encrypting.algorithm.as_deref().unwrap() == "md5".to_string() {
-                        println!("md5  chosen.")
-                    }
-                    else {
-                        println!("Invalid hash algorithm.")
-                    }
-
-                    true;
-                    return
-                }
-                Some("file") => {
-                    false
-                }
-                None => {
-                    println!("Invalid type.");
-                    return
-                }
-                _ => {
-                    false
-                }
-            };
+            cmd_handler::crypto_handler(&encrypting);
         }
         Some(Commands::Zipping(name)) => {
             match name.file_path {
@@ -86,20 +45,9 @@ fn main() {
                 }None => {}
             }
         }
-        Some(Commands::StringSearch(check)) => {
-            match check.input_string {
-                Some(ref _str) => {
-
-                }None => {}
-            }
-
-            match check.search {
-                Some(ref _search) => {
-
-                }None => {}
-            }
+        Some(Commands::StringSearch(stringsearch)) => {
+            cmd_handler::string_handler(&stringsearch);
         }
-
         // Some(Commands::Projects(name)) =>
         // {
         //     start_path;
