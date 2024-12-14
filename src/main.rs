@@ -2,7 +2,7 @@ mod commands;
 mod credentials;
 mod hash_helper;
 mod cmd_handler;
-
+mod file_helper;
 
 use clap::{ Parser, };
 use commands::Commands;
@@ -25,15 +25,20 @@ pub struct CliApp {
 }
 
 fn main() {
+    match file_helper::get_files_in_folder("./target/debug") {
+        Ok(file_names) => {
+            for file_name in file_names {
+                println!("{}", file_name.display());
+            }
+        }
+        Err(e) => println!("Error: {}", e),
+    }
+
 
     let creds = Credentials::new(String::from("SOME_API_KEY"), String::from("SOME_SECRET"));
     println!("{}", creds.to_string());
 
-
-
-
     let cli = CliApp::parse();
-
     match &cli.command {
         Some(Commands::Encrypting(encrypting)) => {
             cmd_handler::crypto_handler(&encrypting);
@@ -47,6 +52,10 @@ fn main() {
         }
         Some(Commands::StringSearch(stringsearch)) => {
             cmd_handler::string_handler(&stringsearch);
+            // TODO Receive Input files from the user.
+            // Search specific string from the txt file or csv file.
+
+
         }
         // Some(Commands::Projects(name)) =>
         // {

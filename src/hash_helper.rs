@@ -1,5 +1,5 @@
 use std::{fs::File, io::{BufReader, Read}, path::PathBuf};
-use sha2::{Digest, Sha256};
+use sha2::{Digest, Sha256, Sha512};
 use anyhow::Result;
 
 pub fn encrypt_sha256(input: &str) -> Result<String> {
@@ -8,6 +8,13 @@ pub fn encrypt_sha256(input: &str) -> Result<String> {
     let hash = format!("{:X}", hasher.finalize());
     return Ok(hash);
 }
+pub fn encrypt_sha512(input: &str) -> Result<String> {
+    let mut hasher = Sha512::new();
+    hasher.update(input);
+    let hash = format!("{:X}", hasher.finalize());
+    return Ok(hash);
+}
+
 
 pub fn encrypt_md5(input: &str) -> Result<String> {
     let digest = md5::compute(input);
