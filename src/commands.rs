@@ -6,12 +6,10 @@ use clap::{Subcommand, Args};
 pub enum Commands {
     Encrypting(Encrypting),
     Zipping(Zipping),
-    StringSearch(StringSearch)
+    StringSearch(StringSearch),
+    Inspect(Inspect)
     // Projects(Project)
 }
-// How to implement Debug trait
-
-
 impl fmt::Debug for Commands {
 fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Commands")
@@ -65,4 +63,11 @@ pub struct StringSearch {
     pub search: Option<String>,
 }
 
+#[derive(Args)]
+pub struct Inspect {
+    /// The string to inspect
+    pub string: Option<String>,
+    #[arg(short = 'd', long = "digits")]
+    pub only_digits: bool,
+}
 
