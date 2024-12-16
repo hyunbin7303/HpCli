@@ -7,7 +7,8 @@ pub enum Commands {
     Encrypting(Encrypting),
     Zipping(Zipping),
     StringSearch(StringSearch),
-    Inspect(Inspect)
+    Inspect(Inspect),
+    Random(Random)
     // Projects(Project)
 }
 impl fmt::Debug for Commands {
@@ -65,6 +66,19 @@ pub struct StringSearch {
 
 #[derive(Args)]
 pub struct Inspect {
+    /// The string to inspect
+    pub string: Option<String>,
+    #[arg(short = 'd', long = "digits")]
+    pub only_digits: bool,
+}
+
+#[derive(Args)]
+pub struct Random {
+
+    /// Type of the random output.
+    #[arg(short='o', long= "output")]
+    pub output_type: Option<String>,
+
     /// The string to inspect
     pub string: Option<String>,
     #[arg(short = 'd', long = "digits")]

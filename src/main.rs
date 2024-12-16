@@ -5,11 +5,12 @@ mod cmd_handler;
 mod file_helper;
 mod string_handler;
 mod cliapp;
+mod rand_generator;
 
 use cliapp::CliApp;
 use commands::Commands;
 use credentials::Credentials;
-use clap::Parser;
+use clap::{Command, Parser};
 
 fn main() {
     match file_helper::get_files_in_folder("./target/debug") {
@@ -58,6 +59,10 @@ fn main() {
                     println!("Type any string.")
                 }
             }
+        }
+
+        Some(Commands::Random(input)) => {
+
         }
         // Some(Commands::Projects(name)) =>
         // {
