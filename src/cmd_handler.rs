@@ -1,5 +1,4 @@
-use crate::hash_helper;
-use crate::commands::{Encrypting, StringSearch};
+use crate::{commands::{Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_md5, encrypt_sha256, encrypt_sha512}};
 
 
 
@@ -40,9 +39,9 @@ pub fn crypto_handler(encrypting: &Encrypting) {
 
 fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, anyhow::Error> {
     let result = match algorithm.to_lowercase().as_str() {
-        "sha256" => hash_helper::encrypt_sha256(input_str),
-        "sha512" => hash_helper::encrypt_sha512(input_str),
-        "md5" => hash_helper::encrypt_md5(input_str),
+        "sha256" => encrypt_sha256(input_str),
+        "sha512" => encrypt_sha512(input_str),
+        "md5" => encrypt_md5(input_str),
         _ => return Err(anyhow::Error::msg("invalid algorithm input.")),
     };
     return result;

@@ -1,16 +1,20 @@
 mod commands;
 mod credentials;
-mod hash_helper;
 mod cmd_handler;
-mod file_helper;
-mod string_handler;
+mod files;
+mod strings;
 mod cliapp;
 mod rand_generator;
+mod cryptography;
 
 use cliapp::CliApp;
 use commands::Commands;
 use credentials::Credentials;
 use clap::{Command, Parser};
+use files::file_helper;
+use strings::string_handler::inspect;
+
+
 
 fn main() {
     match file_helper::get_files_in_folder("./target/debug") {
@@ -46,7 +50,7 @@ fn main() {
         Some(Commands::Inspect(input)) => {
             match input.string {
                 Some(ref _name) => {
-                    let (res, kind) = string_handler::inspect(_name, input.only_digits);
+                    let (res, kind) = inspect(_name, input.only_digits);
 
                     let mut plural_s = "s";
                     if res == 1 {
