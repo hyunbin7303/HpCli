@@ -7,7 +7,7 @@ use crate::commands::{Encrypting, StringSearch};
 pub fn crypto_handler(encrypting: &Encrypting) {
     match encrypting.input_type.as_deref() { // TODO: Is this right approach?
         Some("string") => {
-            let input = match encrypting.input_string.as_deref() {
+            let input = match encrypting.input_string.as_ref() {
                 Some(input) => input,
                 None => {
                     return
@@ -23,6 +23,13 @@ pub fn crypto_handler(encrypting: &Encrypting) {
         }
         Some("file") => {
             // let input = match encrypting.file_path.
+            let input = match encrypting.input_string.as_ref() {
+                Some(input) => input,
+                None => {
+                    return
+                }
+            };
+            println!("input file validation: {}", input);
             true
         }
         _ => {

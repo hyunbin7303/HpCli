@@ -1,4 +1,4 @@
-use rand::{distributions::Alphanumeric, prelude::Distribution, Rng};
+use rand::{distributions::Alphanumeric, prelude::Distribution, rngs::OsRng, Rng, RngCore};
 const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
 abcdefghijklmnopqrstuvwxyz\
 0123456789)(*&^%$#@!~";
@@ -33,8 +33,21 @@ fn get_sample_in_string() -> String {
     // let v: Vec<f32> = Standard.sample_iter(&mut rng).take(10).collect(); for number
     return Alphanumeric.sample_iter(&mut rng).take(10).map(char::from).collect();
 }
+fn get_random(dest: &mut [u8]) {
+    RngCore::fill_bytes(&mut OsRng, dest);
+}
 
+fn nonce() -> Vec<u8> {
+    let mut randoms: [u8; 24] = [0; 24];
+    get_random(&mut randoms);
+    return randoms.to_vec();
+}
 
+fn auth_tag() -> Vec<u8> {
+    let mut randoms: [u8; 32] = [0; 32];
+    get_random(&mut randoms);
+    return randoms.to_vec();
+}
 
 #[cfg(test)]
 mod tests {
