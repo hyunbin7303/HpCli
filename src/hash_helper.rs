@@ -15,7 +15,6 @@ pub fn encrypt_sha512(input: &str) -> Result<String> {
     return Ok(hash);
 }
 
-
 pub fn encrypt_md5(input: &str) -> Result<String> {
     let digest = md5::compute(input);
     let result = format!("{:X}", digest);
@@ -39,4 +38,17 @@ fn digest_file_sha256(path: &PathBuf) -> Result<String> {
     let result = format!("{:X}", digest);
 
     Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::hash_helper;
+
+    #[test]
+    fn test_encrypt_sha256_input_a_success() {
+        let result = hash_helper::encrypt_sha256("a").unwrap();
+
+        assert_eq!(result, "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB".to_string());
+    }
+
 }
