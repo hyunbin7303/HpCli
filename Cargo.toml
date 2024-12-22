@@ -13,3 +13,5 @@ serde_json = "1.0.107"
 md5 = "0.7.0"
 rand = "0.8.5"
 tempfile = "3.14.0"
+orion = "0.17.7"
+rand_core = { version = "0.6.4", features = ["getrandom"] }
