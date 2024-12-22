@@ -1,3 +1,5 @@
+use anyhow::Error;
+
 use crate::{commands::{Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_md5, encrypt_sha256, encrypt_sha512}};
 
 
@@ -14,7 +16,7 @@ pub fn crypto_handler(encrypting: &Encrypting) {
             };
             let result = encrypt_string(encrypting.algorithm.as_ref().unwrap().as_str(),input);
             if result.is_err() {
-                println!("Error comes out. {}", result.unwrap_err());
+                println!("Error occurred. {}", result.unwrap_err());
                 return
             }
             println!("Result: {}", result.unwrap());
@@ -28,6 +30,11 @@ pub fn crypto_handler(encrypting: &Encrypting) {
                     return
                 }
             };
+            let result = encrypt_file(encrypting.algorithm.as_ref().unwrap().as_str(), input);
+            if result.is_err() {
+                println!("Error occurred. {}", result.unwrap_err());
+                return
+            }
             println!("input file validation: {}", input);
             true
         }
@@ -43,6 +50,12 @@ fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, anyhow::Er
         "sha512" => encrypt_sha512(input_str),
         "md5" => encrypt_md5(input_str),
         _ => return Err(anyhow::Error::msg("invalid algorithm input.")),
+    };
+    return result;
+}
+fn encrypt_file(algorithm: &str, file_path: &str) -> Result<String, anyhow::Error> {
+    let result = match algorithm.to_lowercase().as_str() {
+        _ => return Err(anyhow::Error::msg("invalid algorithm input."))
     };
     return result;
 }

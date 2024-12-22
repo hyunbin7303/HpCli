@@ -4,7 +4,7 @@ use rand_core::OsRng;
 use sha2::{Digest, Sha256, Sha512};
 use anyhow::Result;
 use std::io::Write;
-use orion::{aead, hazardous::stream::chacha20::CHACHA_KEYSIZE, kdf::{derive_key, Password, Salt}};
+use orion::{aead::{streaming}, hazardous::stream::chacha20::CHACHA_KEYSIZE, kdf::{derive_key, Password, Salt}};
 
 use orion::hazardous::{
     aead::xchacha20poly1305::{seal, open, Nonce, SecretKey},
@@ -25,20 +25,13 @@ pub fn encrypt_sha512(input: &str) -> Result<String> {
     let hash = format!("{:X}", hasher.finalize());
     return Ok(hash);
 }
-
 pub fn encrypt_md5(input: &str) -> Result<String> {
     let digest = md5::compute(input);
     let result = format!("{:X}", digest);
     return Ok(result);
 }
 
-// fn create_key(password: String, nonce: Vec<u8>) -> SecretKey {
-//     let password = Password::from_slice(password.as_bytes()).unwrap();
-//     let salt = Salt::from_slice(nonce.as_slice()).unwrap();
-//     let kdf_key = derive_key(&password, &salt, 15, 1024, CHACHA_KEYSIZE as u32).unwrap();
-//     let key = SecretKey::from_slice(kdf_key.unprotected_as_bytes()).unwrap();
-//     return key;
-// }
+
 
 fn get_random(dest: &mut [u8]) {
     RngCore::fill_bytes(&mut OsRng, dest);
@@ -62,7 +55,6 @@ fn simple_split_encrypted(cipher_text: &[u8]) -> (Vec<u8>, Vec<u8>) {
         cipher_text[CHACHA_KEYSIZE..].to_vec(),
         )
 }
-
 fn create_key(password: String, nonce: Vec<u8>) -> SecretKey {
     let password = Password::from_slice(password.as_bytes()).unwrap();
     let salt = Salt::from_slice(nonce.as_slice()).unwrap();
@@ -104,8 +96,11 @@ fn decrypt_core(
 
 
 const CHUNK_SIZE: usize = 128; // The size of the chunks you wish to split the stream into.
-
-pub fn encrypt_large_file(file_path: &str, output_path: &str, password: String) -> Result<(), orion::errors::UnknownCryptoError> {
+pub fn encrypt_large_file(
+    file_path: &str,
+    output_path: &str,
+    password: String
+) -> Result<(), orion::errors::UnknownCryptoError> {
     let mut source_file = File::open(file_path).expect("Failed to open input file");
     let mut dist = File::create(output_path).expect("Failed to create output file");
 
@@ -124,7 +119,6 @@ pub fn encrypt_large_file(file_path: &str, output_path: &str, password: String) 
 
     Ok(())
 }
-
 fn digest_file_sha256(path: &PathBuf) -> Result<String> {
     let input = File::open(path)?;
     let mut reader = BufReader::new(input);
