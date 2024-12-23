@@ -7,16 +7,20 @@ mod cliapp;
 mod rand_generator;
 mod cryptography;
 
+use std::env;
+
 use cliapp::CliApp;
 use commands::Commands;
 use credentials::Credentials;
-use clap::{Command, Parser};
+use clap::Parser;
 use files::file_helper;
 use strings::string_handler::inspect;
 
 
 
 fn main() {
+    let path = env::current_dir().unwrap();
+    println!("The current directory is {}", path.display());
     match file_helper::get_files_in_folder("./target/debug") {
         Ok(file_names) => {
             for file_name in file_names {

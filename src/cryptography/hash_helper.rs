@@ -55,7 +55,7 @@ fn simple_split_encrypted(cipher_text: &[u8]) -> (Vec<u8>, Vec<u8>) {
         cipher_text[CHACHA_KEYSIZE..].to_vec(),
         )
 }
-fn create_key(password: String, nonce: Vec<u8>) -> SecretKey {
+fn create_key(password: &str, nonce: Vec<u8>) -> SecretKey {
     let password = Password::from_slice(password.as_bytes()).unwrap();
     let salt = Salt::from_slice(nonce.as_slice()).unwrap();
     let kdf_key = derive_key(&password, &salt, 15, 1024, CHACHA_KEYSIZE as u32).unwrap();
@@ -81,25 +81,11 @@ fn encrypt_core(
     dist.write(&output.as_slice()).unwrap();
 }
 
-fn decrypt_core(
-    dist: &mut File,
-    contents: Vec<u8>,
-    key: &SecretKey,
-    nonce: Nonce
-) {
-    let split = simple_split_encrypted(contents.as_slice());
-    let mut output = vec![0u8; split.1.len() - POLY1305_OUTSIZE];
-
-    open(&key, &nonce, split.1.as_slice(), Some(split.0.as_slice()), &mut output).unwrap();
-    dist.write(&output.as_slice()).unwrap();
-}
-
-
 const CHUNK_SIZE: usize = 128; // The size of the chunks you wish to split the stream into.
 pub fn encrypt_large_file(
     file_path: &str,
     output_path: &str,
-    password: String
+    password: &str
 ) -> Result<(), orion::errors::UnknownCryptoError> {
     let mut source_file = File::open(file_path).expect("Failed to open input file");
     let mut dist = File::create(output_path).expect("Failed to create output file");
@@ -141,6 +127,10 @@ fn digest_file_sha256(path: &PathBuf) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use crate::cryptography::hash_helper::encrypt_sha256;
+    use super::*;
+    use std::fs::{self, File};
+    use std::io::Write;
+    use tempfile::tempdir;
 
 
     #[test]
@@ -149,6 +139,32 @@ mod tests {
 
         assert_eq!(result, "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB".to_string());
     }
+
+    #[test]
+    fn test_encrypt_large_file_success() {
+        // Create a temporary directory
+        let dir = tempdir().unwrap();
+        let input_file_path = dir.path().join("input.txt");
+        let output_file_path = dir.path().join("kevinoutput.enc");
+
+        // Write some data to the input file
+        let mut input_file = File::create(&input_file_path).unwrap();
+        writeln!(input_file, "This is a test file.").unwrap();
+
+        let password = "strongpassword";
+        let result = encrypt_large_file(
+            input_file_path.to_str().unwrap(),
+            output_file_path.to_str().unwrap(),
+            password,
+        );
+
+        assert!(result.is_ok());
+        let metadata = fs::metadata(output_file_path).unwrap();
+        assert!(metadata.is_file());
+        assert!(metadata.len() > 0);
+    }
+
+
 
 }
 //https://dev.to/vapourisation/file-encryption-in-rust-3kid

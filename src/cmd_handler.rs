@@ -1,7 +1,6 @@
-use anyhow::Error;
 
-use crate::{commands::{Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_md5, encrypt_sha256, encrypt_sha512}};
-
+use crate::{commands::{Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_large_file, encrypt_md5, encrypt_sha256, encrypt_sha512}};
+use anyhow::{Error, Result};
 
 
 
@@ -30,12 +29,20 @@ pub fn crypto_handler(encrypting: &Encrypting) {
                     return
                 }
             };
-            let result = encrypt_file(encrypting.algorithm.as_ref().unwrap().as_str(), input);
+            let output_path = encrypting.output_path.as_deref().unwrap_or("outputfile");
+            let password = match encrypting.password.as_deref() {
+                Some(password) => password,
+                None => {
+                    println!("Password missing.");
+                    return
+                }
+            };
+            let result = encrypt_file(encrypting.algorithm.as_ref().unwrap().as_str(), input, output_path, password);
             if result.is_err() {
                 println!("Error occurred. {}", result.unwrap_err());
                 return
             }
-            println!("input file validation: {}", input);
+            println!("File is encrypted: {}", output_path);
             true
         }
         _ => {
@@ -44,7 +51,7 @@ pub fn crypto_handler(encrypting: &Encrypting) {
     };
 }
 
-fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, anyhow::Error> {
+fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, Error> {
     let result = match algorithm.to_lowercase().as_str() {
         "sha256" => encrypt_sha256(input_str),
         "sha512" => encrypt_sha512(input_str),
@@ -53,11 +60,14 @@ fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, anyhow::Er
     };
     return result;
 }
-fn encrypt_file(algorithm: &str, file_path: &str) -> Result<String, anyhow::Error> {
-    let result = match algorithm.to_lowercase().as_str() {
-        _ => return Err(anyhow::Error::msg("invalid algorithm input."))
-    };
-    return result;
+fn encrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &str) -> Result<String, Error> {
+    match algorithm.to_lowercase().as_str() {
+        "default" => {
+            encrypt_large_file(file_path, output_path, password)?;
+            Ok(format!("File encrypted successfully to {}", output_path))
+        },
+        _ => Err(Error::msg("Invalid algorithm input.")),
+    }
 }
 pub fn string_handler(stringhandler: &StringSearch) {
     match stringhandler.input_string {

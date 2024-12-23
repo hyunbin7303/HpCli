@@ -44,8 +44,14 @@ pub struct Encrypting {
     #[arg(required=true)]
     pub input_string: Option<String>,
 
+    #[arg(long= "output", short= 'o', required=false)]
+    pub output_path: Option<String>,
+
     #[arg(long = "file-path", short= 'f', required=false)]
     pub file_path: Option<String>,
+
+    #[arg(short='p', long="password", required=false)]
+    pub password: Option<String>,
 }
 #[derive(Args)]
 pub struct Zipping {
