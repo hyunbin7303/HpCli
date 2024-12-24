@@ -39,10 +39,12 @@ fn main() {
         Some(Commands::Encrypting(encrypting)) => {
             cmd_handler::crypto_handler(&encrypting);
         }
+        Some(Commands::Decrypting(decrypting)) => {
+            cmd_handler::decrypt_handler(&decrypting);
+        }
         Some(Commands::Zipping(name)) => {
             match name.file_path {
                 Some(ref _name) => {
-
                 }None => {}
             }
         }

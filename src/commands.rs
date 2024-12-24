@@ -5,6 +5,7 @@ use clap::{Subcommand, Args};
 #[derive(Subcommand)]
 pub enum Commands {
     Encrypting(Encrypting),
+    Decrypting(Decrypting),
     Zipping(Zipping),
     StringSearch(StringSearch),
     Inspect(Inspect),
@@ -53,6 +54,28 @@ pub struct Encrypting {
     #[arg(short='p', long="password", required=false)]
     pub password: Option<String>,
 }
+
+#[derive(Args,Debug)]
+pub struct Decrypting {
+    #[arg(long = "type", short ='t', required=true)]
+    pub input_type: Option<String>,
+
+    #[arg(long = "algorithm", short = 'a', required=true)]
+    pub algorithm: Option<String>,
+
+    #[arg(required=true)]
+    pub input_string: Option<String>,
+
+    #[arg(long= "output", short= 'o', required=false)]
+    pub output_path: Option<String>,
+
+    #[arg(long = "file-path", short= 'f', required=false)]
+    pub file_path: Option<String>,
+
+    #[arg(short='p', long="password", required=false)]
+    pub password: Option<String>,
+}
+
 #[derive(Args)]
 pub struct Zipping {
     pub file_path: Option<String>,

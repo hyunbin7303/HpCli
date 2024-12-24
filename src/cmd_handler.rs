@@ -1,5 +1,5 @@
 
-use crate::{commands::{Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_large_file, encrypt_md5, encrypt_sha256, encrypt_sha512}};
+use crate::{commands::{Decrypting, Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_large_file, encrypt_md5, encrypt_sha256, encrypt_sha512}};
 use anyhow::{Error, Result};
 
 
@@ -50,6 +50,19 @@ pub fn crypto_handler(encrypting: &Encrypting) {
         }
     };
 }
+
+pub fn decrypt_handler(decrypting: &Decrypting) {
+    match decrypting.input_type.as_deref() { // TODO: Is this right approach?
+        Some("string") => {
+
+            return
+        },
+        _ => {
+            false
+        }
+    };
+}
+
 
 fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, Error> {
     let result = match algorithm.to_lowercase().as_str() {
