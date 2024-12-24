@@ -1,5 +1,12 @@
 
-use crate::{commands::{Decrypting, Encrypting, StringSearch}, cryptography::hash_helper::{encrypt_large_file, encrypt_md5, encrypt_sha256, encrypt_sha512}};
+use crate::{
+    commands::{
+            Decrypting, Encrypting, StringSearch
+    },
+    cryptography::{
+        file_encryption::{digest_file_sha256, encrypt_large_file}, string_encryption::{encrypt_md5, encrypt_sha256, encrypt_sha512},
+    }
+};
 use anyhow::{Error, Result};
 
 
@@ -52,15 +59,26 @@ pub fn crypto_handler(encrypting: &Encrypting) {
 }
 
 pub fn decrypt_handler(decrypting: &Decrypting) {
-    match decrypting.input_type.as_deref() { // TODO: Is this right approach?
-        Some("string") => {
-
-            return
-        },
-        _ => {
-            false
+    if let Some(input_type) = decrypting.input_type.as_deref() {
+        match input_type {
+            "string" => {
+                return;
+            }
+            "file" => {
+                // Handle the case where input_type is "file"
+                println!("Processing file...");
+            }
+            _ => {
+                // Handle any other cases
+                println!("Unknown input type: {}", input_type);
+                return;
+            }
         }
-    };
+    } else {
+        // Handle the case where input_type is None
+        println!("No input type provided.");
+        return;
+    }
 }
 
 
@@ -75,6 +93,10 @@ fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, Error> {
 }
 fn encrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &str) -> Result<String, Error> {
     match algorithm.to_lowercase().as_str() {
+        "sha256" => {
+            let result = digest_file_sha256(file_path)?;
+            Ok(format!("File encrypted using sha256 algorithm. {}", result))
+        },
         "default" => {
             encrypt_large_file(file_path, output_path, password)?;
             Ok(format!("File encrypted successfully to {}", output_path))
