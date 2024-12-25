@@ -34,15 +34,13 @@ pub struct Project {
 
 #[derive(Args, Debug)]
 pub struct Encrypting {
-    // #[arg(required=false)]
-    // pub path: std::path::PathBuf,
     #[arg(long = "type", short ='t', required=true)]
     pub input_type: Option<String>,
 
     #[arg(long = "algorithm", short = 'a', required=true)]
     pub algorithm: Option<String>,
 
-    #[arg(required=true)]
+    #[arg(long = "input", short = 'i', required=true)]
     pub input_string: Option<String>,
 
     #[arg(long= "output", short= 'o', required=false)]

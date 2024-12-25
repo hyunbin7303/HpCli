@@ -14,6 +14,7 @@ use orion::hazardous::{
 };
 use sha2::{Digest, Sha256};
 
+const CHUNK_SIZE: usize = 128;
 
 #[derive(Debug)]
 pub struct CryptoError;
@@ -89,12 +90,9 @@ fn encrypt_core(
     dist.write(&output.as_slice()).unwrap();
 }
 
-const CHUNK_SIZE: usize = 128; // The size of the chunks you wish to split the stream into.
-pub fn encrypt_large_file(
-    file_path: &str,
-    output_path: &str,
-    password: &str
-) -> Result<(), orion::errors::UnknownCryptoError> {
+pub fn encrypt_large_file(file_path: &str, output_path: &str, password: &str)
+    -> Result<(), orion::errors::UnknownCryptoError>
+{
     let mut source_file = File::open(file_path).expect("Failed to open input file");
     let mut dist = File::create(output_path).expect("Failed to create output file");
 
@@ -144,9 +142,24 @@ mod tests {
         let metadata = fs::metadata(output_file_path).unwrap();
         assert!(metadata.is_file());
         assert!(metadata.len() > 0);
+        dir.close().unwrap();
     }
 
 
+    // TODO Validate this test method.
+    #[test]
+    fn test_encrypt_large_file_input_not_found() {
+        // Use a non-existent input file path
+        let input_file_path = "non_existent_input.txt";
+        let output_file_path = "output.enc";
+        let password = "super_secret_password";
+
+        // Call the encrypt_large_file function and expect an error
+        let result = encrypt_large_file(input_file_path, output_file_path, password);
+
+        // Assert that an error is returned
+        assert!(result.is_err());
+    }
 
 }
 //https://dev.to/vapourisation/file-encryption-in-rust-3kid

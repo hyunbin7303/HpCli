@@ -11,7 +11,7 @@ use anyhow::{Error, Result};
 
 
 
-pub fn crypto_handler(encrypting: &Encrypting) {
+pub fn encrypt_handler(encrypting: &Encrypting) {
     match encrypting.input_type.as_deref() { // TODO: Is this right approach?
         Some("string") => {
             let input = match encrypting.input_string.as_ref() {

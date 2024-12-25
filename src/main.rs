@@ -37,7 +37,7 @@ fn main() {
     let cli = CliApp::parse();
     match &cli.command {
         Some(Commands::Encrypting(encrypting)) => {
-            cmd_handler::crypto_handler(&encrypting);
+            cmd_handler::encrypt_handler(&encrypting);
         }
         Some(Commands::Decrypting(decrypting)) => {
             cmd_handler::decrypt_handler(&decrypting);
