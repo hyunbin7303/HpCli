@@ -2,17 +2,16 @@ use std::fs::File;
 use std::error::Error;
 use std::io::{BufReader, Read};
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
-use rand::RngCore;
-use rand_core::OsRng;
 use anyhow::Result;
 use std::io::Write;
-use orion::{hazardous::stream::chacha20::CHACHA_KEYSIZE, kdf::{derive_key, Password, Salt}};
-
+use orion::hazardous::stream::chacha20::CHACHA_KEYSIZE;
 use orion::hazardous::{
-    aead::xchacha20poly1305::{seal, Nonce, SecretKey},
+    aead::chacha20poly1305::{seal, Nonce, SecretKey},
     mac::poly1305::POLY1305_OUTSIZE,
 };
 use sha2::{Digest, Sha256};
+
+use super::common::{auth_tag, create_key, nonce};
 
 const CHUNK_SIZE: usize = 128;
 
@@ -43,20 +42,7 @@ pub fn digest_file_sha256(file_path: &str) -> Result<String> {
     Ok(result)
 }
 
-fn get_random(dest: &mut [u8]) {
-    RngCore::fill_bytes(&mut OsRng, dest);
-}
-fn nonce() -> Vec<u8> {
-    let mut randoms: [u8; 24] = [0; 24];
-    get_random(&mut randoms);
-    return randoms.to_vec();
-}
 
-fn auth_tag() -> Vec<u8> {
-    let mut randoms: [u8; 32] = [0; 32];
-    get_random(&mut randoms);
-    return randoms.to_vec();
-}
 
 fn simple_split_encrypted(cipher_text: &[u8]) -> (Vec<u8>, Vec<u8>) {
     return (
@@ -64,14 +50,8 @@ fn simple_split_encrypted(cipher_text: &[u8]) -> (Vec<u8>, Vec<u8>) {
         cipher_text[CHACHA_KEYSIZE..].to_vec(),
         )
 }
-fn create_key(password: &str, nonce: Vec<u8>) -> SecretKey {
-    let password = Password::from_slice(password.as_bytes()).unwrap();
-    let salt = Salt::from_slice(nonce.as_slice()).unwrap();
-    let kdf_key = derive_key(&password, &salt, 15, 1024, CHACHA_KEYSIZE as u32).unwrap();
-    let key = SecretKey::from_slice(kdf_key.unprotected_as_bytes()).unwrap();
-    return key;
-}
 
+//
 fn encrypt_core(
     dist: &mut File,
     contents: Vec<u8>,
@@ -90,9 +70,8 @@ fn encrypt_core(
     dist.write(&output.as_slice()).unwrap();
 }
 
-pub fn encrypt_large_file(file_path: &str, output_path: &str, password: &str)
-    -> Result<(), orion::errors::UnknownCryptoError>
-{
+pub fn encrypt_large_file(file_path: &str,output_path: &str,password: &str)
+    -> Result<(), orion::errors::UnknownCryptoError> {
     let mut source_file = File::open(file_path).expect("Failed to open input file");
     let mut dist = File::create(output_path).expect("Failed to create output file");
 
@@ -146,7 +125,6 @@ mod tests {
     }
 
 
-    // TODO Validate this test method.
     #[test]
     fn test_encrypt_large_file_input_not_found() {
         // Use a non-existent input file path

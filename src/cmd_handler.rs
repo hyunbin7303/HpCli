@@ -4,7 +4,7 @@ use crate::{
             Decrypting, Encrypting, StringSearch
     },
     cryptography::{
-        file_encryption::{digest_file_sha256, encrypt_large_file}, string_encryption::{encrypt_md5, encrypt_sha256, encrypt_sha512},
+        file_decryption::decrypt_large_file, file_encryption::{digest_file_sha256, encrypt_large_file}, string_encryption::{encrypt_md5, encrypt_sha256, encrypt_sha512}
     }
 };
 use anyhow::{Error, Result};
@@ -65,8 +65,21 @@ pub fn decrypt_handler(decrypting: &Decrypting) {
                 return;
             }
             "file" => {
-                // Handle the case where input_type is "file"
-                println!("Processing file...");
+                let output_path = decrypting.output_path.as_deref().unwrap_or("outputfile");
+                let password = match decrypting.password.as_deref() {
+                    Some(password) => password,
+                    None => {
+                        println!("Password missing.");
+                        return
+                    }
+                };
+                let result = decrypt_file(decrypting.algorithm.as_ref().unwrap().as_str(), decrypting.file_path.as_ref().unwrap().as_str(), output_path, password);
+                if result.is_err() {
+                    println!("Error occurred. {}", result.unwrap_err());
+                    return
+                }
+                println!("Decrypted file: {}", output_path);
+                return
             }
             _ => {
                 // Handle any other cases
@@ -99,6 +112,17 @@ fn encrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &
         },
         "default" => {
             encrypt_large_file(file_path, output_path, password)?;
+            Ok(format!("File encrypted successfully to {}", output_path))
+        },
+        _ => Err(Error::msg("Invalid algorithm input.")),
+    }
+}
+
+fn decrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &str) -> Result<String, Error> {
+    match algorithm.to_lowercase().as_str() {
+
+        "default" => {
+            decrypt_large_file(file_path, output_path, password)?;
             Ok(format!("File encrypted successfully to {}", output_path))
         },
         _ => Err(Error::msg("Invalid algorithm input.")),
