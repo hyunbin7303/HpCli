@@ -4,7 +4,9 @@ use crate::{
             Decrypting, Encrypting, StringSearch
     },
     cryptography::{
-        file_decryption::decrypt_large_file, file_encryption::{digest_file_sha256, encrypt_large_file}, string_encryption::{encrypt_md5, encrypt_sha256, encrypt_sha512}
+        file_decryption::decrypt_large_file,
+        file_encryption::{digest_file_sha256, encrypt_large_file},
+        hashing::{encrypt_md5, encrypt_sha256, encrypt_sha512}
     }
 };
 use anyhow::{Error, Result};
@@ -12,7 +14,7 @@ use anyhow::{Error, Result};
 
 
 pub fn encrypt_handler(encrypting: &Encrypting) {
-    match encrypting.input_type.as_deref() { // TODO: Is this right approach?
+    match encrypting.input_type.as_deref() {
         Some("string") => {
             let input = match encrypting.input_string.as_ref() {
                 Some(input) => input,
@@ -29,13 +31,8 @@ pub fn encrypt_handler(encrypting: &Encrypting) {
             return
         }
         Some("file") => {
-            // let input = match encrypting.file_path.
-            let input = match encrypting.input_string.as_ref() {
-                Some(input) => input,
-                None => {
-                    return
-                }
-            };
+            let algorithm = encrypting.algorithm.as_ref().unwrap().as_str();
+            let input_path = encrypting.file_path.as_deref().unwrap_or("inputfile");
             let output_path = encrypting.output_path.as_deref().unwrap_or("outputfile");
             let password = match encrypting.password.as_deref() {
                 Some(password) => password,
@@ -44,11 +41,13 @@ pub fn encrypt_handler(encrypting: &Encrypting) {
                     return
                 }
             };
-            let result = encrypt_file(encrypting.algorithm.as_ref().unwrap().as_str(), input, output_path, password);
-            if result.is_err() {
-                println!("Error occurred. {}", result.unwrap_err());
-                return
-            }
+            match encrypt_file(algorithm, input_path, output_path, password){
+                Ok(s) => println!("Encrypted file: {}", s),
+                Err(e) => println!("Error occurred. {e}")
+                // Err(e) => match e.downcast_ref() { // Can be used like this!
+                //     // Some(MyErrors::LetsFixThisTomorrowError) => (),
+                // }
+            };
             println!("File is encrypted: {}", output_path);
             true
         }
@@ -73,16 +72,16 @@ pub fn decrypt_handler(decrypting: &Decrypting) {
                         return
                     }
                 };
-                let result = decrypt_file(decrypting.algorithm.as_ref().unwrap().as_str(), decrypting.file_path.as_ref().unwrap().as_str(), output_path, password);
-                if result.is_err() {
-                    println!("Error occurred. {}", result.unwrap_err());
-                    return
-                }
-                println!("Decrypted file: {}", output_path);
+                match decrypt_file(decrypting.algorithm.as_ref().unwrap().as_str(), decrypting.file_path.as_ref().unwrap().as_str(), output_path, password){
+                    Ok(s) => println!("Decrypted file: {}", s),
+                    Err(e) => println!("Error occurred. {e}")
+                    // Err(e) => match e.downcast_ref() { // Can be used like this!
+                    //     // Some(MyErrors::LetsFixThisTomorrowError) => (),
+                    // }
+                };
                 return
             }
             _ => {
-                // Handle any other cases
                 println!("Unknown input type: {}", input_type);
                 return;
             }
