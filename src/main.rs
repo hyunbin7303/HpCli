@@ -36,6 +36,9 @@ fn main() {
 
     let cli = CliApp::parse();
     match &cli.command {
+        Some(Commands::Hashing(hashing)) => {
+            cmd_handler::hash_handler(&hashing);
+        }
         Some(Commands::Encrypting(encrypting)) => {
             cmd_handler::encrypt_handler(&encrypting);
         }

@@ -4,6 +4,7 @@ use clap::{Subcommand, Args};
 
 #[derive(Subcommand)]
 pub enum Commands {
+    Hashing(Hashing),
     Encrypting(Encrypting),
     Decrypting(Decrypting),
     Zipping(Zipping),
@@ -31,6 +32,17 @@ pub struct Project {
     exclude: Vec<String>,
 }
 
+#[derive(Args, Debug)]
+pub struct Hashing {
+    #[arg(long = "type", short ='t', required=true)]
+    pub input_type: Option<String>,
+
+    #[arg(long = "algorithm", short = 'a', required=true)]
+    pub algorithm: Option<String>,
+
+    #[arg(long = "input", short = 'i', required=true)]
+    pub input_string: Option<String>,
+}
 
 #[derive(Args, Debug)]
 pub struct Encrypting {

@@ -1,17 +1,40 @@
 
 use crate::{
     commands::{
-            Decrypting, Encrypting, StringSearch
+            Decrypting, Encrypting, Hashing, StringSearch
     },
     cryptography::{
         file_decryption::decrypt_large_file,
-        file_encryption::{digest_file_sha256, encrypt_large_file},
-        hashing::{encrypt_md5, encrypt_sha256, encrypt_sha512}
+        file_encryption::{digest_file_sha256, encrypt_large_file}, hash_algorithm::Algorithm,
     }
+
 };
 use anyhow::{Error, Result};
 
+pub fn hash_handler(hashing: &Hashing) {
+    match hashing.input_type.as_deref() {
+        Some("string") => {
+            let input = match hashing.input_string.as_ref() {
+                Some(input) => input,
+                None => {
+                    return
+                }
+            };
+            let result = hash_input(hashing.algorithm.as_ref().unwrap().as_str(),input);
+            if result.is_err() {
+                println!("Error occurred. {}", result.unwrap_err());
+                return
+            }
+            println!("Result: {}", result.unwrap());
+            return
+        }
+        Some("file") => {
 
+        }
+        _ => {
+        }
+    }
+}
 
 pub fn encrypt_handler(encrypting: &Encrypting) {
     match encrypting.input_type.as_deref() {
@@ -22,7 +45,7 @@ pub fn encrypt_handler(encrypting: &Encrypting) {
                     return
                 }
             };
-            let result = encrypt_string(encrypting.algorithm.as_ref().unwrap().as_str(),input);
+            let result = hash_input(encrypting.algorithm.as_ref().unwrap().as_str(),input);
             if result.is_err() {
                 println!("Error occurred. {}", result.unwrap_err());
                 return
@@ -93,12 +116,11 @@ pub fn decrypt_handler(decrypting: &Decrypting) {
     }
 }
 
-
-fn encrypt_string(algorithm: &str, input_str: &str) -> Result<String, Error> {
+fn hash_input(algorithm: &str, input_str: &str) -> Result<String, Error> {
     let result = match algorithm.to_lowercase().as_str() {
-        "sha256" => encrypt_sha256(input_str),
-        "sha512" => encrypt_sha512(input_str),
-        "md5" => encrypt_md5(input_str),
+        "sha256" => Algorithm::Sha256.compute_hash(input_str),
+        "sha512" => Algorithm::Sha512.compute_hash(input_str),
+        "md5" => Algorithm::Md5.compute_hash(input_str),
         _ => return Err(anyhow::Error::msg("invalid algorithm input.")),
     };
     return result;
@@ -116,7 +138,6 @@ fn encrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &
         _ => Err(Error::msg("Invalid algorithm input.")),
     }
 }
-
 fn decrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &str) -> Result<String, Error> {
     match algorithm.to_lowercase().as_str() {
 
