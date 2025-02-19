@@ -10,7 +10,7 @@ use orion::hazardous::{
     mac::poly1305::POLY1305_OUTSIZE,
 };
 use sha2::{Digest, Sha256};
-
+use md5;
 use super::common::{auth_tag, create_key, nonce};
 
 const CHUNK_SIZE: usize = 128;
@@ -22,24 +22,6 @@ impl Display for CryptoError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!( f, "Crypto failure" )
     }
-}
-pub fn digest_file_sha256(file_path: &str) -> Result<String> {
-    let input = File::open(file_path)?;
-    let mut reader = BufReader::new(input);
-
-    let digest = {
-        let mut hasher = Sha256::new();
-        let mut buffer = [0; 1024];
-        loop {
-            let count = reader.read(&mut buffer)?;
-            if count == 0 { break }
-            hasher.update(&buffer[..count]);
-        }
-        hasher.finalize()
-    };
-    let result = format!("{:X}", digest);
-
-    Ok(result)
 }
 
 fn encrypt_core(

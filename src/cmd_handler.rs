@@ -5,7 +5,7 @@ use crate::{
     },
     cryptography::{
         file_decryption::decrypt_large_file,
-        file_encryption::{digest_file_sha256, encrypt_large_file}, hash_algorithm::Algorithm,
+        file_encryption::{ encrypt_large_file}, hash_algorithm::Algorithm,
     }
 
 };
@@ -121,16 +121,17 @@ fn hash_input(algorithm: &str, input_str: &str) -> Result<String, Error> {
         "sha256" => Algorithm::Sha256.compute_hash(input_str),
         "sha512" => Algorithm::Sha512.compute_hash(input_str),
         "md5" => Algorithm::Md5.compute_hash(input_str),
-        _ => return Err(anyhow::Error::msg("invalid algorithm input.")),
+        // "aes" => Algorithm:: // Check for the algorithm
+        _ => return Err(anyhow::Error::msg("invalid algorithm input. Please use among [sha256, sha512, md5, aes]")),
     };
     return result;
 }
 fn encrypt_file(algorithm: &str, file_path: &str, output_path: &str, password: &str) -> Result<String, Error> {
     match algorithm.to_lowercase().as_str() {
-        "sha256" => {
-            let result = digest_file_sha256(file_path)?;
-            Ok(format!("File encrypted using sha256 algorithm. {}", result))
-        },
+        // "sha256" => {
+        //     let result = digest_file_sha256(file_path)?;
+        //     Ok(format!("File encrypted using sha256 algorithm. {}", result))
+        // },
         "default" => {
             encrypt_large_file(file_path, output_path, password)?;
             Ok(format!("File encrypted successfully to {}", output_path))
