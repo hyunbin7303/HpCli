@@ -77,6 +77,9 @@ fn main() {
         Some(Commands::Random(input)) => {
 
         }
+        Some(Commands::Jwt(jwt)) => {
+            cmd_handler::jwt_handler(&jwt);
+        }
         // Some(Commands::Projects(name)) =>
         // {
         //     start_path;

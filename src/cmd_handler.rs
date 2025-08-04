@@ -1,11 +1,12 @@
 
 use crate::{
     commands::{
-            Decrypting, Encrypting, Hashing, StringSearch
+            Decrypting, Encrypting, Hashing, StringSearch, Jwt
     },
     cryptography::{
         file_decryption::decrypt_large_file,
         file_encryption::{ encrypt_large_file}, hash_algorithm::Algorithm,
+        jwt_keygen::{generate_jwt_secret, save_key_to_file, JwtAlgorithm, OutputFormat},
     }
 
 };
@@ -160,5 +161,95 @@ pub fn string_handler(stringhandler: &StringSearch) {
         Some(ref _search) => {
 
         }None => {}
+    }
+}
+
+pub fn jwt_handler(jwt: &Jwt) {
+    let algorithm_str = match jwt.algorithm.as_ref() {
+        Some(alg) => alg,
+        None => {
+            println!("Algorithm is required. Please specify one of: HS256, HS384, HS512, RS256, RS384, RS512");
+            return;
+        }
+    };
+
+    let algorithm = match JwtAlgorithm::from_str(algorithm_str) {
+        Ok(alg) => alg,
+        Err(e) => {
+            println!("Error: {}", e);
+            return;
+        }
+    };
+
+    let format = match OutputFormat::from_str(&jwt.format) {
+        Ok(fmt) => fmt,
+        Err(e) => {
+            println!("Error: {}", e);
+            return;
+        }
+    };
+
+    println!("Generating JWT secret key for algorithm: {}", algorithm_str);
+    
+    match generate_jwt_secret(algorithm, format, jwt.key_size) {
+        Ok(key_pair) => {
+            if let Some(ref public_key) = key_pair.public_key {
+                println!("=== RSA Key Pair Generated ===");
+                println!("\n--- Private Key ---");
+                println!("{}", key_pair.private_key);
+                println!("\n--- Public Key ---");
+                println!("{}", public_key);
+
+                if let Some(ref output_path) = jwt.output_path {
+                    let private_path = format!("{}_private.pem", output_path);
+                    let public_path = format!("{}_public.pem", output_path);
+                    
+                    match save_key_to_file(&key_pair.private_key, &private_path) {
+                        Ok(_) => println!("\nPrivate key saved to: {}", private_path),
+                        Err(e) => println!("Error saving private key: {}", e),
+                    }
+                    
+                    match save_key_to_file(public_key, &public_path) {
+                        Ok(_) => println!("Public key saved to: {}", public_path),
+                        Err(e) => println!("Error saving public key: {}", e),
+                    }
+                }
+            } else {
+                println!("=== HMAC Secret Key Generated ===");
+                println!("Secret Key: {}", key_pair.private_key);
+                println!("Key Length: {} bytes", 
+                    match algorithm_str.to_uppercase().as_str() {
+                        "HS256" => "32",
+                        "HS384" => "48", 
+                        "HS512" => "64",
+                        _ => "unknown"
+                    }
+                );
+
+                if let Some(ref output_path) = jwt.output_path {
+                    match save_key_to_file(&key_pair.private_key, output_path) {
+                        Ok(_) => println!("\nSecret key saved to: {}", output_path),
+                        Err(e) => println!("Error saving key: {}", e),
+                    }
+                }
+            }
+
+            println!("\n=== Usage Instructions ===");
+            if key_pair.public_key.is_some() {
+                println!("For RSA algorithms (RS256/RS384/RS512):");
+                println!("- Use the PRIVATE key to SIGN JWT tokens");
+                println!("- Use the PUBLIC key to VERIFY JWT tokens");
+                println!("- Keep the private key secure and never expose it");
+                println!("- The public key can be shared for token verification");
+            } else {
+                println!("For HMAC algorithms (HS256/HS384/HS512):");
+                println!("- Use this secret key for both signing AND verifying JWT tokens");
+                println!("- Keep this key secure and never expose it");
+                println!("- Both token creation and verification require the same secret");
+            }
+        }
+        Err(e) => {
+            println!("Error generating JWT secret key: {}", e);
+        }
     }
 }

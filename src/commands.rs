@@ -10,7 +10,8 @@ pub enum Commands {
     Zipping(Zipping),
     StringSearch(StringSearch),
     Inspect(Inspect),
-    Random(Random)
+    Random(Random),
+    Jwt(Jwt)
     // Projects(Project)
 }
 impl fmt::Debug for Commands {
@@ -122,5 +123,24 @@ pub struct Random {
     pub string: Option<String>,
     #[arg(short = 'd', long = "digits")]
     pub only_digits: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct Jwt {
+    /// Algorithm type (HS256, HS384, HS512, RS256, RS384, RS512)
+    #[arg(long = "algorithm", short = 'a', required = true)]
+    pub algorithm: Option<String>,
+
+    /// Output format (base64, hex, raw)
+    #[arg(long = "format", short = 'f', default_value = "base64")]
+    pub format: String,
+
+    /// Output file path (optional)
+    #[arg(long = "output", short = 'o')]
+    pub output_path: Option<String>,
+
+    /// Key size in bytes (optional, will use algorithm default if not specified)
+    #[arg(long = "size", short = 's')]
+    pub key_size: Option<usize>,
 }
 
