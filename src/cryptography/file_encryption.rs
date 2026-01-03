@@ -1,16 +1,14 @@
 use std::fs::File;
 use std::error::Error;
-use std::io::{BufReader, Read};
+use std::io::Read;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use anyhow::Result;
 use std::io::Write;
 use orion::hazardous::stream::chacha20::CHACHA_KEYSIZE;
 use orion::hazardous::{
-    aead::chacha20poly1305::{seal, Nonce, SecretKey},
+    aead::xchacha20poly1305::{seal, Nonce, SecretKey},
     mac::poly1305::POLY1305_OUTSIZE,
 };
-use sha2::{Digest, Sha256};
-use md5;
 use super::common::{auth_tag, create_key, nonce};
 
 const CHUNK_SIZE: usize = 128;
@@ -52,6 +50,9 @@ pub fn encrypt_large_file(file_path: &str,output_path: &str,password: &str)
 
     let nonce = nonce();
 
+    // Write version byte (0x01 for XChaCha20-Poly1305)
+    dist.write(&[0x01]).unwrap();
+    // Write nonce
     dist.write(nonce.as_slice()).unwrap();
     let key = create_key(password, nonce.clone());
     let nonce = Nonce::from_slice(nonce.as_slice()).unwrap();
@@ -113,6 +114,53 @@ mod tests {
 
         // Cleanup: Ensure no output file is created
         assert!(!fs::metadata(output_path).is_ok(), "Output file should not be created");
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_roundtrip() {
+        use super::super::file_decryption::decrypt_large_file;
+
+        // Create a temporary directory
+        let dir = tempdir().unwrap();
+        let input_file_path = dir.path().join("original.txt");
+        let encrypted_file_path = dir.path().join("encrypted.bin");
+        let decrypted_file_path = dir.path().join("decrypted.txt");
+
+        // Write test data to the input file
+        let test_data = "This is a test file for encryption and decryption roundtrip with version byte!";
+        std::fs::write(&input_file_path, test_data).unwrap();
+
+        let password = "test_password_123";
+
+        // Encrypt the file
+        let encrypt_result = encrypt_large_file(
+            input_file_path.to_str().unwrap(),
+            encrypted_file_path.to_str().unwrap(),
+            password,
+        );
+        assert!(encrypt_result.is_ok(), "Encryption should succeed");
+
+        // Verify encrypted file exists and has content
+        let encrypted_metadata = fs::metadata(&encrypted_file_path).unwrap();
+        assert!(encrypted_metadata.len() > 0, "Encrypted file should not be empty");
+
+        // Verify version byte is present (0x01)
+        let encrypted_data = fs::read(&encrypted_file_path).unwrap();
+        assert_eq!(encrypted_data[0], 0x01, "First byte should be version byte 0x01");
+
+        // Decrypt the file
+        let decrypt_result = decrypt_large_file(
+            encrypted_file_path.to_str().unwrap(),
+            decrypted_file_path.to_str().unwrap(),
+            password,
+        );
+        assert!(decrypt_result.is_ok(), "Decryption should succeed");
+
+        // Verify decrypted content matches original
+        let decrypted_data = fs::read_to_string(&decrypted_file_path).unwrap();
+        assert_eq!(decrypted_data, test_data, "Decrypted content should match original");
+
+        dir.close().unwrap();
     }
 
 }

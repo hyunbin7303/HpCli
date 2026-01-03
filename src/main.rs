@@ -80,6 +80,9 @@ fn main() {
         Some(Commands::Jwt(jwt)) => {
             cmd_handler::jwt_handler(&jwt);
         }
+        Some(Commands::Keygen(keygen)) => {
+            cmd_handler::keygen_handler(&keygen);
+        }
         // Some(Commands::Projects(name)) =>
         // {
         //     start_path;

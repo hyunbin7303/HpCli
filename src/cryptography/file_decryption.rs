@@ -11,6 +11,22 @@ use orion::hazardous::stream::chacha20::CHACHA_KEYSIZE;
 use super::common::create_key;
 const CHUNK_SIZE: usize = 128;
 
+/// Detect the encryption version from the file
+/// Returns 0x00 for legacy (no version byte), 0x01 for XChaCha20-Poly1305
+fn detect_encryption_version(data: &[u8]) -> u8 {
+    if data.is_empty() {
+        return 0x00;
+    }
+
+    // Check if first byte looks like a version byte (0x01-0x03)
+    // Legacy files start with a 24-byte nonce (random bytes)
+    if data[0] >= 0x01 && data[0] <= 0x03 {
+        data[0]
+    } else {
+        0x00  // Legacy format
+    }
+}
+
 
 
 
@@ -25,9 +41,26 @@ pub fn decrypt_large_file(
     let mut src: Vec<u8> = Vec::new();
     input_file.read_to_end(&mut src).expect("Failed to read input file");
 
-    let nonce = src[..XCHACHA_NONCESIZE].to_vec();
+    // Detect encryption version
+    let version = detect_encryption_version(&src);
 
-    src = src[XCHACHA_NONCESIZE..].to_vec();
+    let nonce_offset = match version {
+        0x01 => {
+            // New format: skip version byte (1 byte)
+            1
+        }
+        0x00 => {
+            // Legacy format: no version byte
+            println!("Warning: Decrypting legacy format file (pre-v0.1). Consider re-encrypting with current version.");
+            0
+        }
+        _ => {
+            panic!("Unsupported encryption version: 0x{:02X}", version);
+        }
+    };
+
+    let nonce = src[nonce_offset..nonce_offset + XCHACHA_NONCESIZE].to_vec();
+    src = src[nonce_offset + XCHACHA_NONCESIZE..].to_vec();
 
     let key = create_key(password, nonce.clone());
     let nonce = Nonce::from_slice(nonce.as_slice()).unwrap();

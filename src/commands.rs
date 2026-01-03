@@ -11,7 +11,8 @@ pub enum Commands {
     StringSearch(StringSearch),
     Inspect(Inspect),
     Random(Random),
-    Jwt(Jwt)
+    Jwt(Jwt),
+    Keygen(Keygen)
     // Projects(Project)
 }
 impl fmt::Debug for Commands {
@@ -43,6 +44,10 @@ pub struct Hashing {
 
     #[arg(long = "input", short = 'i', required=true)]
     pub input_string: Option<String>,
+
+    /// HMAC key (optional, for HMAC mode)
+    #[arg(long = "hmac-key", short = 'k')]
+    pub hmac_key: Option<String>,
 }
 
 #[derive(Args, Debug)]
@@ -64,6 +69,10 @@ pub struct Encrypting {
 
     #[arg(short='p', long="password", required=false)]
     pub password: Option<String>,
+
+    /// Public key file path (for RSA encryption)
+    #[arg(long = "key", short = 'k', required=false)]
+    pub key_path: Option<String>,
 }
 
 #[derive(Args,Debug)]
@@ -85,6 +94,10 @@ pub struct Decrypting {
 
     #[arg(short='p', long="password", required=false)]
     pub password: Option<String>,
+
+    /// Private key file path (for RSA decryption)
+    #[arg(long = "key", short = 'k', required=false)]
+    pub key_path: Option<String>,
 }
 
 #[derive(Args)]
@@ -142,5 +155,20 @@ pub struct Jwt {
     /// Key size in bytes (optional, will use algorithm default if not specified)
     #[arg(long = "size", short = 's')]
     pub key_size: Option<usize>,
+}
+
+#[derive(Args, Debug)]
+pub struct Keygen {
+    /// Algorithm type (rsa2048, rsa3072, rsa4096, ecdsa-p256)
+    #[arg(long = "algorithm", short = 'a', required = true)]
+    pub algorithm: Option<String>,
+
+    /// Output file path (will add _private.pem and _public.pem)
+    #[arg(long = "output", short = 'o', required = true)]
+    pub output_path: Option<String>,
+
+    /// Output format (pem, der)
+    #[arg(long = "format", short = 'f', default_value = "pem")]
+    pub format: String,
 }
 

@@ -1,6 +1,8 @@
 use std::{fs::File, io::{BufReader, Read}};
 
 use sha2::{Digest, Sha256, Sha512};
+use sha3::{Sha3_256, Sha3_512};
+use blake2::{Blake2b512, Blake2s256};
 use anyhow::Result;
 
 
@@ -8,7 +10,11 @@ pub enum Algorithm {
     Sha256,
     Sha512,
     Md5,
-
+    // Phase 2: New hash algorithms
+    Sha3_256,
+    Sha3_512,
+    Blake2b,
+    Blake2s,
 }
 impl Algorithm {
     pub fn compute_hash(&self, input: &str) -> Result<String> {
@@ -28,6 +34,30 @@ impl Algorithm {
             Algorithm::Md5 => {
                 let digest = md5::compute(input);
                 let hash = format!("{:X}", digest);
+                Ok(hash)
+            }
+            Algorithm::Sha3_256 => {
+                let mut hasher = Sha3_256::new();
+                hasher.update(input);
+                let hash = format!("{:X}", hasher.finalize());
+                Ok(hash)
+            }
+            Algorithm::Sha3_512 => {
+                let mut hasher = Sha3_512::new();
+                hasher.update(input);
+                let hash = format!("{:X}", hasher.finalize());
+                Ok(hash)
+            }
+            Algorithm::Blake2b => {
+                let mut hasher = Blake2b512::new();
+                hasher.update(input);
+                let hash = format!("{:X}", hasher.finalize());
+                Ok(hash)
+            }
+            Algorithm::Blake2s => {
+                let mut hasher = Blake2s256::new();
+                hasher.update(input);
+                let hash = format!("{:X}", hasher.finalize());
                 Ok(hash)
             }
         }
